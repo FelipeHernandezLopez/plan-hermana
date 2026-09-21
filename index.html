@@ -151,6 +151,11 @@ const DN = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const DF = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const MN = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
+// Sincronizacion opcional con la hoja de Felipe (solo si ella acepta)
+const SYNC_URL = "https://script.google.com/macros/s/AKfycby47vtVnRQMMknHWyrbxOqQiA81S5uFhD_v9v-5aWCtuqDq3TXJghj9DmNn1zEl8yVrbw/exec";
+const SYNC_TOKEN = "ygQDeHK8c4O4o25mc2pHn_9u";
+var _sy = null;
+
 const TG = {
   train: { k: 1650, p: 105, c: 185, f: 55 },
   rest:  { k: 1500, p: 105, c: 146, f: 55 }
@@ -236,7 +241,51 @@ function load() {
 }
 function save() {
   try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) { toast("No se pudo guardar"); }
+  schedSync();
 }
+function saveQuiet() { try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {} }
+
+// ═══════════════════════════════════════════
+//  COMPARTIR PROGRESO (opcional)
+// ═══════════════════════════════════════════
+function buildPayload() {
+  const t = todayS(), from = addD(t, -30);
+  const sessions = [], food = [];
+  Object.keys(S.logs).sort().forEach(function (d) {
+    if (d < from) return;
+    const L = S.logs[d]; const id = L.id || sessionId(d); const exs = [];
+    if (L.ex) Object.keys(L.ex).forEach(function (eid) {
+      const sets = (L.ex[eid] || []).filter(function (x) { return x && x.ok; }).map(function (x) { return (x.kg || "-") + "x" + (x.reps || "-"); });
+      if (sets.length && EX[eid]) exs.push(EX[eid].n + ": " + sets.join(", "));
+    });
+    if (!L.done && !exs.length) return;
+    sessions.push({ d: d, week: pos(d).w + 1, name: id && SESS[id] ? SESS[id].n : "", done: !!L.done, rpe: L.rpe || "", km: L.km || "", feel: L.feel || "", notes: L.notes || "", ex: exs.join(" | ") });
+  });
+  const days = {};
+  Object.keys(S.food).concat(Object.keys(S.water)).forEach(function (d) { if (d >= from) days[d] = 1; });
+  Object.keys(days).sort().forEach(function (d) {
+    const tt = foodTotals(d); const w = (S.water[d] || 0) * 250;
+    if (tt.k > 0 || w > 0) food.push({ d: d, k: Math.round(tt.k), p: Math.round(tt.p), n: (S.food[d] || []).length, water: w });
+  });
+  return { token: SYNC_TOKEN, name: S.name, start: S.start, weights: S.weights, sessions: sessions, food: food };
+}
+function schedSync() {
+  if (!SYNC_URL || !S.share) return;
+  clearTimeout(_sy); _sy = setTimeout(sync, 4000);
+}
+function sync(manual) {
+  if (!SYNC_URL || !S.share || !S.start) return;
+  fetch(SYNC_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(buildPayload()) })
+    .then(function () { S.lastSync = Date.now(); saveQuiet(); if (manual === true) { toast("Enviado"); if (tab === "mas") renderMas(); } })
+    .catch(function () { if (manual === true) toast("Sin conexión, se enviará luego"); });
+}
+function askShare() {
+  if (!SYNC_URL || !S.start || S.share !== undefined) return;
+  openModal("¿Compartir tu progreso?",
+    '<p class="mu" style="margin-bottom:14px">Felipe puede ver tu peso, tus sesiones y tu comida en una hoja para acompañarte y ayudarte a ajustar el plan. Es opcional y puedes cambiarlo cuando quieras en <b>Más</b>.</p>' +
+    '<button class="btn" onclick="setShare(true)">Sí, compartir</button><button class="btn2" style="width:100%;margin-top:10px" onclick="setShare(false)">No, prefiero que sea privado</button>', true);
+}
+function setShare(v) { S.share = v; save(); closeModal(); if (v) sync(true); if (tab === "mas") renderMas(); }
 
 // ═══════════════════════════════════════════
 //  UTILIDADES
@@ -535,7 +584,7 @@ function updTimer(e) {
   $("t-bar").style.width = Math.min(100, e / T.total * 100) + "%";
   $("t-tot").textContent = "Total " + fmt(e) + " de " + fmt(T.total);
 }
-document.addEventListener("visibilitychange", function () { if (!document.hidden && T) tTick(); });
+document.addEventListener("visibilitychange", function () { if (!document.hidden) { if (T) tTick(); schedSync(); } });
 
 // ═══════════════════════════════════════════
 //  PLAN
@@ -683,6 +732,10 @@ function renderMas() {
     "<details><summary>Las carreras cortas</summary><ul class=\"b\"><li>Ritmo cómodo: puedes hablar frases cortas mientras trotas.</li><li>Mejor terreno blando o plano y zapatillas con buena amortiguación.</li><li>Si un día estás muy cansada, cámbiala por una caminata rápida; no pasa nada.</li><li>La carrera opcional del domingo es extra: úsala solo si te sientes bien.</li></ul></details>" +
     "<details><summary>Descarga y descanso</summary><p>Las semanas 4, 8 y 12 bajan a 2 series. No es \"perder\" progreso: es cuando el cuerpo asimila. Dormir 7-8 h y caminar a diario acelera los resultados más que entrenar más.</p></details>" +
     "<details><summary>Cuándo pararte y consultar</summary><p>Mareos, dolor punzante en articulaciones, dolor en el pecho o cansancio que no se va en varios días: para y consulta con un médico. Este plan es orientativo, no reemplaza la valoración de un profesional de la salud o un nutricionista.</p></details></div>";
+  if (SYNC_URL) {
+    h += '<div class="sec">Compartir</div><div class="card"><div class="row sp"><div><b>Compartir mi progreso con Felipe</b><div class="small mu">Peso, sesiones y comida (últimos 30 días)</div></div><button class="chip ' + (S.share ? "on" : "") + '" onclick="setShare(' + (S.share ? "false" : "true") + ')">' + (S.share ? "Sí" : "No") + '</button></div>' +
+      (S.share ? '<p class="small mu" style="margin-top:8px">Último envío: ' + (S.lastSync ? new Date(S.lastSync).toLocaleString("es") : "aún no") + '</p><button class="btn2 mint" style="width:100%;margin-top:8px" onclick="sync(true)">Enviar ahora</button>' : "") + "</div>";
+  }
   h += '<div class="sec">Ajustes</div><div class="card"><div class="fld"><div class="lbl">Tu nombre</div><input class="inp" id="s-name" value="' + esc(S.name) + '" onchange="S.name=this.value.trim();save();updHeader()"></div>' +
     '<div class="fld"><div class="lbl">Fecha de inicio del programa (se ajusta al lunes)</div><input class="inp" id="s-start" type="date" value="' + S.start + '" onchange="setStart(this.value)"></div>' +
     '<div class="grid2"><button class="btn2 mint" onclick="exportData()">Guardar copia</button><button class="btn2" onclick="$(\'imp\').click()">Restaurar copia</button></div><input type="file" id="imp" accept="application/json" style="display:none" onchange="importData(this)">' +
@@ -728,13 +781,14 @@ function saveOnb() {
   if (kg > 30 && kg < 200) S.weights = [{ d: todayS(), kg: kg, waist: null }];
   save(); closeModal(); viewDate = todayS(); show("hoy");
   toast("¡Hola " + n + "! Tu plan empieza el " + fdate(S.start));
+  setTimeout(askShare, 1200);
 }
 
 // ═══════════════════════════════════════════
 //  ARRANQUE
 // ═══════════════════════════════════════════
 if ("serviceWorker" in navigator) { window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); }); }
-if (!S.start) { updHeader(); onboarding(); } else { render(); }
+if (!S.start) { updHeader(); onboarding(); } else { render(); askShare(); schedSync(); }
 </script>
 </body>
 </html>

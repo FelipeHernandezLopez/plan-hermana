@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mi Plan">
+<meta name="theme-color" content="#0f1214">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Mi Plan</title>
+<style>
+:root{--bg:#0f1214;--card:#171b1e;--card2:#1f2529;--line:rgba(255,255,255,.08);--tx:#eceae6;--mu:#8a9298;--ac:#FF7A6B;--mint:#4ECDB4;--yel:#F2C14E;--blue:#5AA9E6;--red:#E85454;--nav:60px;--hdr:54px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--tx);font:400 14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+button{font-family:inherit}
+.hdr{position:fixed;top:0;left:0;right:0;height:calc(var(--hdr) + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);background:var(--bg);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding-left:16px;padding-right:16px;z-index:50}
+.hdr h1{font-size:19px;font-weight:800;letter-spacing:.5px}
+.hdr h1 b{color:var(--ac)}
+.hr{text-align:right;font-size:11px;color:var(--mu);line-height:1.3}
+.hr b{display:block;color:var(--ac);font-size:12px;letter-spacing:.5px}
+main{position:fixed;top:calc(var(--hdr) + env(safe-area-inset-top));bottom:calc(var(--nav) + env(safe-area-inset-bottom));left:0;right:0}
+.panel{display:none;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 30px}
+.panel.on{display:block}
+nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:var(--card);border-top:1px solid var(--line);display:flex;z-index:50}
+nav button{flex:1;background:none;border:none;color:var(--mu);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:600;letter-spacing:.4px}
+nav button span{font-size:19px;line-height:1}
+nav button.on{color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.sec{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);margin:18px 2px 8px}
+.sec:first-child{margin-top:2px}
+.mu{color:var(--mu)}
+.small{font-size:12px}
+.row{display:flex;align-items:center;gap:10px}
+.sp{justify-content:space-between}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:20px;border:1px solid}
+.btn{width:100%;padding:13px;border:none;border-radius:12px;background:var(--ac);color:#1a0d0b;font-size:14px;font-weight:800;letter-spacing:.3px}
+.btn:active{opacity:.85}
+.btn2{padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card2);color:var(--tx);font-size:13px;font-weight:600}
+.btn2.mint{color:var(--mint);border-color:rgba(78,205,180,.35)}
+.btn2.red{color:var(--red);border-color:rgba(232,84,84,.35)}
+.inp{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--tx);padding:11px 12px;font-size:15px;outline:none;-webkit-appearance:none}
+.inp:focus{border-color:rgba(255,122,107,.6)}
+.lbl{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--mu);margin:0 0 5px}
+.fld{margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* session */
+.big{font-size:22px;font-weight:800;line-height:1.15;margin:4px 0 2px}
+.ex{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:10px}
+.ex h3{font-size:15px;font-weight:700}
+.goal{font-size:12px;color:var(--ac);font-weight:700;margin-top:2px}
+.cue{font-size:12px;color:var(--mu);margin-top:6px;line-height:1.5}
+.set{display:grid;grid-template-columns:24px 1fr 1fr 44px;gap:8px;align-items:center;margin-top:8px}
+.set i{font-style:normal;text-align:center;color:var(--mu);font-size:12px;font-weight:700}
+.set .inp{padding:9px 8px;text-align:center;font-size:15px}
+.tick{height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--mu);font-size:18px;font-weight:800}
+.tick.ok{background:var(--mint);border-color:var(--mint);color:#062b24}
+.done-badge{background:rgba(78,205,180,.12);border:1px solid rgba(78,205,180,.4);color:var(--mint);border-radius:12px;padding:10px 12px;font-weight:700;text-align:center;margin-bottom:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:8px 13px;border-radius:20px;border:1px solid var(--line);background:var(--card2);color:var(--tx);font-size:13px;font-weight:600}
+.chip.on{background:var(--ac);border-color:var(--ac);color:#1a0d0b}
+.datebar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.datebar button{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--tx);font-size:18px}
+.datebar div{text-align:center;font-weight:700}
+.datebar small{display:block;color:var(--mu);font-weight:500;font-size:11px}
+/* timer */
+.timer{text-align:center}
+.timer .cnt{font-size:64px;font-weight:800;letter-spacing:-1px;line-height:1.05;font-variant-numeric:tabular-nums}
+.timer .lb{font-size:18px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+.pbar{height:6px;border-radius:6px;background:var(--card2);overflow:hidden;margin:6px 0}
+.pbar i{display:block;height:100%;background:var(--ac);border-radius:6px;transition:width .3s}
+.pbar.g i{background:var(--mint)}
+.seg{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line)}
+.seg:last-child{border:none}
+/* plan */
+.wk{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.wk.cur{border-color:rgba(255,122,107,.55)}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px}
+.day{border:1px solid var(--line);background:var(--card2);border-radius:9px;padding:6px 0;text-align:center;color:var(--tx);font-size:10px;font-weight:700;position:relative}
+.day small{display:block;font-size:9px;color:var(--mu);font-weight:600}
+.day.rest{opacity:.45}
+.day.today{border-color:var(--ac)}
+.day.ok{background:rgba(78,205,180,.15);border-color:rgba(78,205,180,.5)}
+.day.ok::after{content:"✓";position:absolute;top:1px;right:4px;font-size:9px;color:var(--mint)}
+/* food */
+.ring{display:flex;gap:10px;margin-bottom:8px}
+.mac{flex:1;background:var(--card2);border-radius:12px;padding:10px 6px;text-align:center}
+.mac b{display:block;font-size:18px}
+.mac small{color:var(--mu);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.opt:last-child{border:none}
+.opt .t{flex:1;font-size:13px}
+.opt .t small{display:block;color:var(--mu);font-size:11px}
+.add{width:38px;height:38px;border-radius:10px;border:1px solid rgba(255,122,107,.5);background:rgba(255,122,107,.1);color:var(--ac);font-size:20px;font-weight:700;flex-shrink:0}
+.glass{width:34px;height:42px;border:1px solid var(--line);border-radius:4px 4px 9px 9px;background:var(--card2)}
+.glass.f{background:rgba(90,169,230,.35);border-color:var(--blue)}
+ul.b{padding-left:18px}
+ul.b li{margin:5px 0}
+details{border-top:1px solid var(--line);padding:10px 0}
+details:first-of-type{border-top:none}
+summary{font-weight:700;cursor:pointer}
+details p,details ul{margin-top:8px;color:var(--mu);font-size:13px}
+/* modal */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:90;display:none}
+.mbg.on{display:block}
+.modal{position:fixed;left:0;right:0;bottom:0;max-height:88vh;background:var(--card);border-radius:20px 20px 0 0;border-top:1px solid var(--line);z-index:91;display:none;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+.modal.on{display:flex}
+.mh{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.mh b{font-size:16px}
+.mh button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--card2);color:var(--mu);font-size:15px}
+.mb{padding:14px 16px 18px;overflow-y:auto}
+#toast{position:fixed;left:50%;bottom:calc(var(--nav) + 20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#2c3338;color:#fff;padding:10px 18px;border-radius:22px;font-size:13px;z-index:200;opacity:0;pointer-events:none;transition:opacity .25s;max-width:90vw;text-align:center}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <h1>MI <b>PLAN</b></h1>
+  <div class="hr" id="hr">—</div>
+</header>
+<main>
+  <section id="p-hoy" class="panel on"></section>
+  <section id="p-plan" class="panel"></section>
+  <section id="p-food" class="panel"></section>
+  <section id="p-prog" class="panel"></section>
+  <section id="p-mas" class="panel"></section>
+</main>
+<nav>
+  <button id="n-hoy" class="on" onclick="show('hoy')"><span>◉</span>HOY</button>
+  <button id="n-plan" onclick="show('plan')"><span>▦</span>PLAN</button>
+  <button id="n-food" onclick="show('food')"><span>◐</span>COMIDA</button>
+  <button id="n-prog" onclick="show('prog')"><span>↗</span>PROGRESO</button>
+  <button id="n-mas" onclick="show('mas')"><span>≡</span>MÁS</button>
+</nav>
+<div class="mbg" id="mbg" onclick="closeModal()"></div>
+<div class="modal" id="modal"><div class="mh"><b id="mt"></b><button id="mx" onclick="closeModal()">✕</button></div><div class="mb" id="mbody"></div></div>
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  DATOS (todo se guarda solo en este teléfono)
+// ═══════════════════════════════════════════
+const LS = "mi_plan_v1";
+const WEEKS = 12;
+const DELOAD = [3, 7, 11];
+const PHN = ["", "Base", "Construcción", "Fuerza"];
+const DN = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+const DF = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const MN = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+const TG = {
+  train: { k: 1650, p: 105, c: 185, f: 55 },
+  rest:  { k: 1500, p: 105, c: 146, f: 55 }
+};
+
+// Ejercicios. u = unilateral (por lado), t = por tiempo, fix = texto fijo de repeticiones, main = ejercicio principal
+const EX = {
+  sq:      { n: "Sentadilla goblet", main: 1, cue: "Mancuerna pegada al pecho, pies al ancho de hombros. Baja con la espalda recta hasta que los muslos queden paralelos y empuja el suelo para subir. Sin mancuerna: pisa una banda y sujétala sobre los hombros." },
+  rdl:     { n: "Peso muerto rumano", main: 1, cue: "Mancuernas frente a los muslos, rodillas casi estiradas. Lleva la cadera hacia atrás como cerrando una puerta con el glúteo, baja hasta sentir el estiramiento atrás del muslo y sube apretando glúteos." },
+  bridge:  { n: "Puente de glúteo con peso", cue: "Espalda en el suelo, mancuerna sobre la cadera y banda sobre las rodillas. Sube la cadera apretando glúteos 1 segundo arriba, sin arquear la zona lumbar." },
+  lunge:   { n: "Zancada inversa", u: 1, cue: "Da un paso largo hacia atrás y baja hasta que ambas rodillas formen 90°. Empuja con el talón de adelante para volver. Alterna piernas." },
+  lateral: { n: "Caminata lateral con banda", fix: "12 pasos por lado", cue: "Banda mini sobre las rodillas o tobillos, rodillas ligeramente flexionadas. Pasos laterales controlados sin dejar que la banda cierre las rodillas." },
+  calf:    { n: "Elevación de talones", fix: "15-20", cue: "De pie con mancuernas, sube en punta de pies, pausa 1 segundo arriba y baja lento (3 segundos)." },
+  plank:   { n: "Plancha", t: 1, cue: "Antebrazos en el suelo, cuerpo en línea recta, abdomen y glúteos apretados. Respira sin aguantar el aire." },
+  push:    { n: "Flexiones inclinadas", main: 1, cue: "Manos en una mesa o sofá, cuerpo recto. Baja el pecho hasta el borde y sube. Cuando te salgan 15 fáciles, baja la altura de las manos." },
+  row1:    { n: "Remo a una mano con mancuerna", main: 1, u: 1, cue: "Una mano y una rodilla apoyadas en una silla o banco, espalda plana. Tira del codo hacia la cadera, aprieta la espalda y baja lento." },
+  ohp:     { n: "Press de hombros sentada", cue: "Sentada con respaldo, mancuernas a la altura de las orejas. Empuja hacia arriba sin arquear la espalda y baja controlado." },
+  bandrow: { n: "Remo con banda", cue: "Sentada con las piernas estiradas y la banda en los pies. Tira de las manos hacia las costillas juntando los omóplatos." },
+  latr:    { n: "Elevaciones laterales", cue: "Mancuernas ligeras, codos ligeramente flexionados. Sube los brazos hasta la altura de los hombros y baja lento, sin balanceo." },
+  curl:    { n: "Curl de bíceps", cue: "Codos pegados al cuerpo, sube la mancuerna sin balancear el tronco y baja en 3 segundos." },
+  tri:     { n: "Extensión de tríceps sobre la cabeza", cue: "Una mancuerna con ambas manos detrás de la cabeza, codos apuntando al techo. Estira hacia arriba y baja lento. Hazlo en superserie con el curl para ahorrar tiempo." },
+  deadbug: { n: "Bicho muerto", fix: "8 por lado", cue: "Boca arriba, brazos al techo y rodillas a 90°. Baja brazo y pierna contraria sin que la espalda baja se despegue del suelo." },
+  sumo:    { n: "Sentadilla sumo con mancuerna", main: 1, cue: "Pies bien abiertos con puntas hacia afuera, mancuerna colgando entre las piernas. Baja recta y aprieta glúteos al subir." },
+  split:   { n: "Sentadilla dividida", main: 1, u: 1, cue: "Un pie adelante y el otro atrás (puedes apoyarlo en una silla). Baja recto hasta que la rodilla de atrás casi toque el suelo. Empuja con el talón de adelante." },
+  slrdl:   { n: "Peso muerto a una pierna", u: 1, cue: "Apóyate en una pared o silla si necesitas equilibrio. Lleva la pierna libre hacia atrás mientras inclinas el torso con la espalda plana, y vuelve apretando el glúteo." },
+  floor:   { n: "Press de pecho en el suelo", cue: "Boca arriba con rodillas dobladas, mancuernas sobre el pecho. Empuja hacia el techo y baja hasta que los codos toquen suavemente el suelo." },
+  pull:    { n: "Apertura de banda", fix: "15", cue: "Banda estirada frente al pecho, brazos rectos. Ábrelos hacia los lados juntando los omóplatos y vuelve lento." },
+  sbridge: { n: "Puente de glúteo a una pierna", u: 1, cue: "Un pie apoyado, la otra pierna estirada al aire. Sube la cadera apretando el glúteo de la pierna de apoyo y baja lento." },
+  sideplank: { n: "Plancha lateral", t: 1, u: 1, cue: "Apoyada sobre el antebrazo, cadera alta y cuerpo recto. Aguanta el tiempo indicado en cada lado." }
+};
+
+const SESS = {
+  A:    { t: "str", n: "Piernas y glúteos", short: "Piernas", min: 45, ex: ["sq", "rdl", "bridge", "lunge", "lateral", "calf", "plank"] },
+  B:    { t: "str", n: "Tren superior y core", short: "Superior", min: 45, ex: ["push", "row1", "ohp", "bandrow", "latr", "curl", "tri", "deadbug"] },
+  C:    { t: "str", n: "Cuerpo completo", short: "Full", min: 45, ex: ["sumo", "split", "slrdl", "floor", "pull", "sbridge", "sideplank"] },
+  RUN:  { t: "run", n: "Carrera corta", short: "Correr" },
+  RUNO: { t: "run", n: "Carrera suave (opcional)", short: "Correr+", opt: 1 },
+  REST: { t: "rest", n: "Descanso activo", short: "Descanso" }
+};
+const SCHED = ["A", "RUN", "REST", "B", "REST", "C", "RUNO"];
+
+// Progresión de carrera: r = repeticiones, j = minutos trotando, w = minutos caminando, c = minutos continuos
+const RUNW = [
+  { r: 5, j: 1, w: 2 }, { r: 6, j: 1, w: 1.5 }, { r: 6, j: 2, w: 2 }, { r: 5, j: 2, w: 2 },
+  { r: 5, j: 3, w: 2 }, { r: 4, j: 4, w: 1.5 }, { r: 3, j: 6, w: 2 }, { r: 3, j: 5, w: 2 },
+  { r: 2, j: 8, w: 2 }, { r: 2, j: 10, w: 2 }, { c: 15 }, { c: 20 }
+];
+
+const MEALS = {
+  "Desayuno": [
+    { n: "2 huevos + 3 claras revueltos, 1 arepa pequeña (80 g), 1/3 aguacate, 1 fruta", k: 450, p: 25 },
+    { n: "Avena 50 g con 200 ml de leche, 1 scoop de proteína (o 150 g yogur griego), 1/2 banano y canela", k: 430, p: 30 },
+    { n: "Yogur griego natural 200 g + 40 g de avena o granola + fruta + 10 g de nueces", k: 380, p: 22 }
+  ],
+  "Almuerzo": [
+    { n: "130 g pechuga (peso crudo), 150 g arroz cocido, 100 g frijoles, ensalada grande y 1 cdta de aceite de oliva", k: 540, p: 42 },
+    { n: "140 g pescado blanco, 200 g papa cocida, verduras salteadas y 1 cdta de aceite", k: 400, p: 34 },
+    { n: "200 g lentejas cocidas, 100 g pollo desmenuzado, 100 g arroz y ensalada", k: 540, p: 44 }
+  ],
+  "Merienda": [
+    { n: "Yogur griego natural 170 g + 1 fruta", k: 160, p: 17 },
+    { n: "1 manzana + 20 g de almendras", k: 180, p: 4 },
+    { n: "Batido: 1 scoop de proteína + 1 banano + agua", k: 200, p: 25 },
+    { n: "2 galletas de arroz + 50 g de queso cottage", k: 150, p: 10 }
+  ],
+  "Cena": [
+    { n: "Tortilla de 2 huevos + 2 claras con verduras, 1 papa mediana (150 g) y ensalada", k: 400, p: 27 },
+    { n: "120 g de salmón o pollo al horno, 150 g de batata y brócoli", k: 420, p: 27 },
+    { n: "Wrap integral con 100 g de pollo, verduras y 1 cdta de hummus", k: 420, p: 30 }
+  ]
+};
+
+const DEF = { name: "", start: "", logs: {}, food: {}, water: {}, weights: [], over: {} };
+let S = load();
+let tab = "hoy";
+let viewDate = todayS();
+
+function load() {
+  try {
+    const p = JSON.parse(localStorage.getItem(LS) || "{}");
+    return Object.assign({}, DEF, p);
+  } catch (e) { return Object.assign({}, DEF); }
+}
+function save() {
+  try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) { toast("No se pudo guardar"); }
+}
+
+// ═══════════════════════════════════════════
+//  UTILIDADES
+// ═══════════════════════════════════════════
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+function pad(n) { return String(n).padStart(2, "0"); }
+function ymd(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+function pd(s) { return new Date(s + "T12:00:00"); }
+function addD(s, n) { const d = pd(s); d.setDate(d.getDate() + n); return ymd(d); }
+function diff(a, b) { return Math.round((pd(a) - pd(b)) / 864e5); }
+function todayS() { return ymd(new Date()); }
+function mondayOf(s) { const d = pd(s); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return ymd(d); }
+function nextMonday() { const t = todayS(); const m = mondayOf(t); return m === t ? t : addD(m, 7); }
+function snapStart(s) { const m = mondayOf(s); return m === s ? s : addD(m, 7); }
+function fdate(s) { const d = pd(s); return d.getDate() + " " + MN[d.getMonth()]; }
+function fmt(sec) { sec = Math.max(0, Math.ceil(sec)); return pad(Math.floor(sec / 60)) + ":" + pad(sec % 60); }
+function toast(m) {
+  const t = $("toast"); t.textContent = m; t.style.opacity = "1";
+  clearTimeout(t._t); t._t = setTimeout(function () { t.style.opacity = "0"; }, 2600);
+}
+function openModal(title, html, locked) {
+  $("mt").textContent = title; $("mbody").innerHTML = html;
+  $("mbg").classList.add("on"); $("modal").classList.add("on");
+  $("mx").style.display = locked ? "none" : "";
+  $("mbg").onclick = locked ? null : closeModal;
+}
+function closeModal() { $("mbg").classList.remove("on"); $("modal").classList.remove("on"); }
+
+// Posición en el programa para una fecha
+function pos(ds) {
+  const d = diff(ds, S.start);
+  if (d < 0) return { pre: true, d: d, w: 0, dow: (pd(ds).getDay() + 6) % 7 };
+  const raw = Math.floor(d / 7);
+  return { pre: false, d: d, w: Math.min(raw, WEEKS - 1), raw: raw, dow: d % 7 };
+}
+function sessionId(ds) {
+  if (S.over[ds]) return S.over[ds];
+  const p = pos(ds);
+  if (p.pre) return null;
+  return SCHED[p.dow];
+}
+function phaseOf(wk) { return wk < 4 ? 1 : wk < 8 ? 2 : 3; }
+function target(wk, id, idx) {
+  const e = EX[id]; const dl = DELOAD.indexOf(wk) >= 0; const ph = phaseOf(wk);
+  const sets = dl ? 2 : (ph === 3 && e.main ? 4 : 3);
+  let r;
+  if (e.fix) r = e.fix;
+  else if (e.t) r = (ph === 1 ? 30 : ph === 2 ? 40 : 50) + " s";
+  else r = ph === 1 ? "12-15" : ph === 2 ? "10-12" : "8-12";
+  if (e.u && !e.fix) r += " por lado";
+  return { sets: sets, r: r };
+}
+function runSegs(wk, opt) {
+  const p = RUNW[wk]; const segs = [{ l: "Caminata de calentamiento", s: 300, k: "walk" }];
+  if (p.c) {
+    segs.push({ l: "Trote suave continuo", s: (opt ? Math.max(10, p.c - 5) : p.c) * 60, k: "run" });
+  } else {
+    let r = opt ? Math.max(2, p.r - 1) : p.r;
+    for (let i = 0; i < r; i++) {
+      segs.push({ l: "Trota", s: p.j * 60, k: "run" });
+      if (i < r - 1) segs.push({ l: "Camina", s: Math.round(p.w * 60), k: "walk" });
+    }
+  }
+  segs.push({ l: "Caminata de enfriamiento", s: 300, k: "walk" });
+  return segs;
+}
+function runText(wk, opt) {
+  const p = RUNW[wk];
+  if (p.c) return (opt ? Math.max(10, p.c - 5) : p.c) + " min de trote suave continuo";
+  const r = opt ? Math.max(2, p.r - 1) : p.r;
+  return r + " × (" + p.j + " min trota + " + p.w + " min camina)";
+}
+function isDone(ds) { return !!(S.logs[ds] && S.logs[ds].done); }
+function lastSet(exId) {
+  const keys = Object.keys(S.logs).sort().reverse();
+  for (let i = 0; i < keys.length; i++) {
+    const L = S.logs[keys[i]];
+    if (L.ex && L.ex[exId]) {
+      let best = 0, reps = 0;
+      L.ex[exId].forEach(function (s) { if (s && s.ok && parseFloat(s.kg) > best) { best = parseFloat(s.kg); reps = s.reps; } });
+      if (best > 0) return { kg: best, reps: reps };
+    }
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════
+//  NAVEGACIÓN
+// ═══════════════════════════════════════════
+function show(t) {
+  tab = t;
+  ["hoy", "plan", "food", "prog", "mas"].forEach(function (x) {
+    $("p-" + x).classList.toggle("on", x === t);
+    $("n-" + x).classList.toggle("on", x === t);
+  });
+  render();
+}
+function render() {
+  updHeader();
+  if (tab === "hoy") renderHoy();
+  else if (tab === "plan") renderPlan();
+  else if (tab === "food") renderFood();
+  else if (tab === "prog") renderProg();
+  else renderMas();
+}
+function updHeader() {
+  const t = todayS(); const p = pos(t);
+  const d = pd(t);
+  $("hr").innerHTML = DN[(d.getDay() + 6) % 7] + " " + d.getDate() + " " + MN[d.getMonth()] +
+    "<b>" + (S.start ? (p.pre ? "EMPIEZA EL " + fdate(S.start).toUpperCase() : (p.raw >= WEEKS ? "CICLO COMPLETO" : "SEMANA " + (p.w + 1) + " · DÍA " + (p.dow + 1))) : "BIENVENIDA") + "</b>";
+}
+function goto(ds) { viewDate = ds; show("hoy"); }
+
+// ═══════════════════════════════════════════
+//  HOY
+// ═══════════════════════════════════════════
+function renderHoy() {
+  const el = $("p-hoy"); const ds = viewDate; const p = pos(ds); const id = sessionId(ds);
+  const d = pd(ds);
+  let h = '<div class="datebar"><button onclick="goto(addD(viewDate,-1))">‹</button><div>' + DF[(d.getDay() + 6) % 7] + " " + d.getDate() + " " + MN[d.getMonth()] +
+    "<small>" + (ds === todayS() ? "HOY" : '<a style="color:var(--ac)" onclick="goto(todayS())">volver a hoy</a>') + '</small></div><button onclick="goto(addD(viewDate,1))">›</button></div>';
+
+  if (!id) {
+    const n = diff(S.start, ds);
+    h += '<div class="card" style="text-align:center;padding:26px 16px"><div class="big">Tu plan empieza el ' + fdate(S.start) + '</div><p class="mu" style="margin:8px 0 16px">Faltan ' + n + ' día' + (n === 1 ? "" : "s") + '. Mientras tanto puedes mirar el plan o probar una sesión.</p><button class="btn" onclick="show(\'plan\')">Ver el plan</button></div>';
+    h += '<button class="btn2" style="width:100%" onclick="pickSession()">Probar una sesión hoy</button>';
+    el.innerHTML = h; return;
+  }
+  const s = SESS[id];
+  const ph = phaseOf(p.w);
+  const dl = DELOAD.indexOf(p.w) >= 0;
+  h += '<div class="card"><div class="row sp"><span class="tag" style="color:var(--ac);border-color:var(--ac)">' + (s.t === "str" ? "Pesas en casa" : s.t === "run" ? "Carrera" : "Descanso") + '</span>' +
+    '<span class="small mu">Semana ' + (p.w + 1) + " · " + PHN[ph] + (dl ? " · descarga" : "") + '</span></div>' +
+    '<div class="big">' + s.n + '</div>' +
+    '<div class="small mu">' + (s.t === "str" ? "≈ " + s.min + " min · " + s.ex.length + " ejercicios" : s.t === "run" ? runText(p.w, s.opt) : "Camina, estira, duerme bien") + '</div></div>';
+
+  if (isDone(ds)) h += '<div class="done-badge">✓ Sesión completada <a style="color:var(--mu);font-weight:500;margin-left:8px" onclick="reopen(\'' + ds + '\')">reabrir</a></div>';
+
+  if (s.t === "str") {
+    h += '<details class="card" style="padding:12px 14px"><summary>Calentamiento (5 min)</summary><ul class="b"><li>10 círculos de cadera por lado</li><li>8 gato-vaca</li><li>10 sentadillas sin peso</li><li>10 puentes de glúteo</li><li>1 serie ligera del primer ejercicio</li></ul></details>';
+    s.ex.forEach(function (eid, i) { h += exCard(ds, eid, i, p.w); });
+    h += finishBox(ds, "str");
+  } else if (s.t === "run") {
+    h += '<div class="card"><div id="tbox" class="timer">' + timerHTML() + '</div></div>';
+    h += '<div class="card"><div class="lbl">Estructura</div>' + runSegs(p.w, s.opt).map(function (g) { return '<div class="seg"><span>' + g.l + '</span><b>' + fmt(g.s) + '</b></div>'; }).join("") + '</div>';
+    h += '<div class="card"><div class="fld"><div class="lbl">Distancia (km, opcional)</div><input class="inp" inputmode="decimal" placeholder="2.5" value="' + esc((S.logs[ds] && S.logs[ds].km) || "") + '" onchange="setLog(\'' + ds + '\',\'km\',this.value)"></div>' +
+      '<div class="lbl">¿Cómo te sentiste?</div><div class="chips">' + [["1", "Muy dura"], ["2", "Dura"], ["3", "Bien"], ["4", "Muy bien"], ["5", "Volando"]].map(function (f) {
+        return '<button class="chip ' + ((S.logs[ds] && S.logs[ds].feel === f[0]) ? "on" : "") + '" onclick="setLog(\'' + ds + '\',\'feel\',\'' + f[0] + '\',1)">' + f[1] + "</button>";
+      }).join("") + "</div></div>";
+    h += finishBox(ds, "run");
+    h += '<p class="small mu" style="margin:0 2px 10px">Si notas dolor (no cansancio), para y camina. Trotar debe sentirse suave: podrías hablar frases cortas.</p>';
+  } else {
+    h += '<div class="card"><ul class="b"><li>Meta de pasos: <b>8.000</b> (una caminata de 30-40 min)</li><li>10 min de estiramiento suave: cadera, piernas y espalda</li><li>Dormir 7-8 horas: es cuando el cuerpo se recupera</li><li>Toma agua y mantén la proteína de siempre</li></ul></div>';
+  }
+  h += '<button class="btn2" style="width:100%;margin-top:6px" onclick="pickSession()">Cambiar la sesión de este día</button>';
+  el.innerHTML = h;
+  if (T) updTimer(tEl());
+}
+
+function exCard(ds, eid, i, wk) {
+  const e = EX[eid]; const t = target(wk, eid, i);
+  const L = (S.logs[ds] && S.logs[ds].ex && S.logs[ds].ex[eid]) || [];
+  const ls = lastSet(eid);
+  let sets = "";
+  for (let k = 0; k < t.sets; k++) {
+    const r = L[k] || {};
+    sets += '<div class="set"><i>' + (k + 1) + '</i>' +
+      '<input class="inp" inputmode="decimal" placeholder="' + (ls ? ls.kg : "kg") + '" value="' + esc(r.kg || "") + '" onchange="setVal(\'' + ds + "','" + eid + "'," + k + ",'kg',this.value)\">" +
+      '<input class="inp" inputmode="numeric" placeholder="reps" value="' + esc(r.reps || "") + '" onchange="setVal(\'' + ds + "','" + eid + "'," + k + ",'reps',this.value)\">" +
+      '<button class="tick ' + (r.ok ? "ok" : "") + '" onclick="tick(\'' + ds + "','" + eid + "'," + k + ')">✓</button></div>';
+  }
+  return '<div class="ex" id="ex-' + eid + '"><h3>' + (i + 1) + ". " + e.n + '</h3><div class="goal">' + t.sets + " × " + t.r + (ls ? ' <span class="mu" style="font-weight:500">· última vez: ' + ls.kg + " kg</span>" : "") + '</div>' +
+    '<details style="border:none;padding:4px 0 0"><summary class="small mu" style="font-weight:500">Cómo se hace</summary><div class="cue">' + e.cue + "</div></details>" + sets + "</div>";
+}
+function setVal(ds, eid, k, f, v) {
+  const L = S.logs[ds] = S.logs[ds] || {};
+  L.ex = L.ex || {}; L.ex[eid] = L.ex[eid] || [];
+  L.ex[eid][k] = L.ex[eid][k] || {};
+  L.ex[eid][k][f] = v; save();
+}
+function tick(ds, eid, k) {
+  const p = pos(ds); const t = target(p.w, eid, 0);
+  const L = S.logs[ds] = S.logs[ds] || {};
+  L.ex = L.ex || {}; L.ex[eid] = L.ex[eid] || [];
+  const r = L.ex[eid][k] = L.ex[eid][k] || {};
+  r.ok = !r.ok;
+  if (r.ok) {
+    if (!r.kg) { const ls = lastSet(eid); if (ls) r.kg = ls.kg; }
+    if (!r.reps) { const m = String(t.r).match(/\d+/); if (m) r.reps = m[0]; }
+  }
+  save();
+  const idx = SESS[sessionId(ds)].ex.indexOf(eid);
+  const el = $("ex-" + eid); if (el) el.outerHTML = exCard(ds, eid, idx, p.w);
+}
+function setLog(ds, f, v, rerender) {
+  const L = S.logs[ds] = S.logs[ds] || {};
+  L[f] = v; save(); if (rerender) renderHoy();
+}
+function finishBox(ds, kind) {
+  const L = S.logs[ds] || {};
+  let h = '<div class="card">';
+  if (kind === "str") {
+    h += '<div class="lbl">Esfuerzo de la sesión (1 = suave, 10 = máximo)</div><div class="chips" style="margin-bottom:12px">' +
+      [5, 6, 7, 8, 9, 10].map(function (n) { return '<button class="chip ' + (String(L.rpe) === String(n) ? "on" : "") + '" onclick="setLog(\'' + ds + "','rpe','" + n + "',1)\">" + n + "</button>"; }).join("") + "</div>";
+  }
+  h += '<div class="fld"><div class="lbl">Notas</div><input class="inp" placeholder="Cómo te sentiste, qué subir la próxima vez…" value="' + esc(L.notes || "") + '" onchange="setLog(\'' + ds + '\',\'notes\',this.value)"></div>';
+  h += '<button class="btn" onclick="finish(\'' + ds + '\')">' + (isDone(ds) ? "Guardar cambios" : "Terminar sesión") + "</button></div>";
+  return h;
+}
+function finish(ds) {
+  const L = S.logs[ds] = S.logs[ds] || {};
+  L.id = sessionId(ds); L.done = true; L.at = Date.now(); save();
+  toast("✓ Sesión guardada, ¡bien hecho!"); renderHoy();
+}
+function reopen(ds) { if (S.logs[ds]) { S.logs[ds].done = false; save(); renderHoy(); } }
+function pickSession() {
+  const ds = viewDate; const cur = sessionId(ds);
+  let h = '<p class="mu small" style="margin-bottom:10px">Elige lo que quieres hacer este día. Los registros no se pierden.</p>';
+  Object.keys(SESS).forEach(function (k) {
+    h += '<div class="opt"><div class="t"><b>' + SESS[k].n + "</b><small>" + (SESS[k].t === "str" ? "Pesas · ≈ 45 min" : SESS[k].t === "run" ? "Carrera de la semana" : "Recuperación") + "</small></div>" +
+      '<button class="btn2 ' + (cur === k ? "mint" : "") + '" onclick="setSession(\'' + k + '\')">' + (cur === k ? "Actual" : "Elegir") + "</button></div>";
+  });
+  if (S.over[ds]) h += '<button class="btn2 red" style="width:100%;margin-top:12px" onclick="setSession(null)">Volver a la sesión original</button>';
+  openModal("Cambiar sesión", h);
+}
+function setSession(k) {
+  const ds = viewDate;
+  if (k === null) delete S.over[ds]; else S.over[ds] = k;
+  save(); closeModal(); renderHoy();
+}
+
+// ═══════════════════════════════════════════
+//  TEMPORIZADOR DE CARRERA
+// ═══════════════════════════════════════════
+let T = null, TI = null, AC = null, WL = null;
+function beep(f) {
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.connect(g); g.connect(AC.destination); o.frequency.value = f || 880; g.gain.value = 0.25;
+    o.start(); o.stop(AC.currentTime + 0.2);
+  } catch (e) {}
+}
+function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+function tEl() { if (!T) return 0; const now = T.pausedAt || Date.now(); return (now - T.t0 - T.pausedMs) / 1000; }
+function tStart() {
+  const ds = viewDate; const id = sessionId(ds); const p = pos(ds);
+  const segs = runSegs(p.w, SESS[id].opt); let acc = 0;
+  const cum = segs.map(function (s) { acc += s.s; return acc; });
+  T = { ds: ds, segs: segs, cum: cum, total: acc, t0: Date.now(), pausedAt: 0, pausedMs: 0, idx: 0 };
+  beep(660);
+  try { if (navigator.wakeLock) navigator.wakeLock.request("screen").then(function (w) { WL = w; }).catch(function () {}); } catch (e) {}
+  clearInterval(TI); TI = setInterval(tTick, 500);
+  $("tbox").innerHTML = timerHTML(); tTick();
+}
+function tTick() {
+  if (!T || T.pausedAt) return;
+  const e = tEl();
+  if (e >= T.total) { tStop(true); return; }
+  let i = 0; while (i < T.cum.length && e >= T.cum[i]) i++;
+  if (i !== T.idx) {
+    T.idx = i; const k = T.segs[i].k;
+    beep(k === "run" ? 988 : 660); buzz(k === "run" ? [300, 100, 300] : [200]);
+  }
+  updTimer(e);
+}
+function tPause() {
+  if (!T) return;
+  if (T.pausedAt) { T.pausedMs += Date.now() - T.pausedAt; T.pausedAt = 0; } else { T.pausedAt = Date.now(); }
+  $("tbox").innerHTML = timerHTML(); updTimer(tEl());
+}
+function tStop(done) {
+  clearInterval(TI); TI = null;
+  try { if (WL) { WL.release(); WL = null; } } catch (e) {}
+  const ds = T ? T.ds : viewDate; T = null;
+  if (done) { beep(880); setTimeout(function () { beep(1175); }, 250); buzz([400, 150, 400, 150, 400]); toast("🏁 ¡Carrera completada!"); }
+  if (tab === "hoy") renderHoy();
+}
+function timerHTML() {
+  if (!T) {
+    return '<div class="lbl" style="text-align:center">Temporizador con avisos</div><p class="small mu" style="margin:4px 0 12px">Vibra y suena cada vez que toca cambiar entre trotar y caminar. Deja la app abierta y la pantalla encendida.</p><button class="btn" onclick="tStart()">▶ Empezar carrera</button>';
+  }
+  return '<div class="lb" id="t-lbl">—</div><div class="cnt" id="t-cnt">00:00</div><div class="small mu" id="t-next">—</div>' +
+    '<div class="pbar"><i id="t-bar" style="width:0%"></i></div><div class="small mu" id="t-tot">—</div>' +
+    '<div class="grid2" style="margin-top:12px"><button class="btn2" onclick="tPause()">' + (T.pausedAt ? "▶ Seguir" : "❚❚ Pausa") + '</button><button class="btn2 red" onclick="if(confirm(\'¿Terminar la carrera?\'))tStop(false)">■ Parar</button></div>';
+}
+function updTimer(e) {
+  if (!T || !$("t-cnt")) return;
+  let i = 0; while (i < T.cum.length && e >= T.cum[i]) i++;
+  if (i >= T.segs.length) i = T.segs.length - 1;
+  const seg = T.segs[i]; const rem = T.cum[i] - e; const nx = T.segs[i + 1];
+  const lb = $("t-lbl"); lb.textContent = seg.l; lb.style.color = seg.k === "run" ? "var(--ac)" : "var(--mint)";
+  $("t-cnt").textContent = fmt(rem);
+  $("t-next").textContent = nx ? "Sigue: " + nx.l + " (" + fmt(nx.s) + ")" : "¡Última parte!";
+  $("t-bar").style.width = Math.min(100, e / T.total * 100) + "%";
+  $("t-tot").textContent = "Total " + fmt(e) + " de " + fmt(T.total);
+}
+document.addEventListener("visibilitychange", function () { if (!document.hidden && T) tTick(); });
+
+// ═══════════════════════════════════════════
+//  PLAN
+// ═══════════════════════════════════════════
+function renderPlan() {
+  const el = $("p-plan"); const t = todayS(); const cp = pos(t);
+  let h = '<div class="card"><div class="lbl">Tu programa</div><b>12 semanas</b><p class="small mu" style="margin-top:4px">3 días de pesas en casa + 1 carrera corta (y una opcional). Semanas 4, 8 y 12 son de descarga: menos series para recuperar. Toca cualquier día para verlo o registrarlo.</p></div>';
+  for (let w = 0; w < WEEKS; w++) {
+    const ws = addD(S.start, w * 7);
+    const cur = !cp.pre && cp.w === w && cp.raw < WEEKS;
+    const dl = DELOAD.indexOf(w) >= 0;
+    let days = "";
+    for (let d = 0; d < 7; d++) {
+      const ds = addD(ws, d); const id = S.over[ds] || SCHED[d]; const s = SESS[id];
+      days += '<button class="day ' + (id === "REST" ? "rest " : "") + (ds === t ? "today " : "") + (isDone(ds) ? "ok" : "") + '" onclick="goto(\'' + ds + '\')">' + DN[d] + "<small>" + s.short + "</small></button>";
+    }
+    h += '<div class="wk ' + (cur ? "cur" : "") + '"><div class="row sp"><b>Semana ' + (w + 1) + ' <span class="mu small" style="font-weight:500">· ' + fdate(ws) + "</span></b>" +
+      '<span class="tag" style="color:' + (dl ? "var(--yel)" : "var(--mint)") + ';border-color:' + (dl ? "var(--yel)" : "var(--mint)") + '">' + (dl ? "Descarga" : PHN[phaseOf(w)]) + "</span></div>" +
+      '<div class="small mu" style="margin-top:3px">Carrera: ' + runText(w, false) + "</div>" + '<div class="days">' + days + "</div></div>";
+  }
+  el.innerHTML = h;
+}
+
+// ═══════════════════════════════════════════
+//  COMIDA
+// ═══════════════════════════════════════════
+function foodTotals(ds) {
+  const arr = S.food[ds] || []; const t = { k: 0, p: 0, c: 0, f: 0 };
+  arr.forEach(function (x) { t.k += +x.k || 0; t.p += +x.p || 0; t.c += +x.c || 0; t.f += +x.f || 0; });
+  return t;
+}
+function dayKind(ds) { const id = sessionId(ds); return (!id || id === "REST") ? "rest" : "train"; }
+function bar(v, max, cls) { return '<div class="pbar ' + (cls || "") + '"><i style="width:' + Math.min(100, max ? v / max * 100 : 0) + '%"></i></div>'; }
+function renderFood() {
+  const el = $("p-food"); const ds = todayS(); const kind = dayKind(ds); const tg = TG[kind]; const tot = foodTotals(ds);
+  const water = S.water[ds] || 0; const arr = S.food[ds] || [];
+  let h = '<div class="card"><div class="row sp"><b>Hoy · ' + (kind === "train" ? "día de entreno" : "día de descanso") + '</b><span class="tag" style="color:var(--ac);border-color:var(--ac)">' + tg.k + " kcal</span></div>" +
+    '<div class="row sp small" style="margin-top:12px"><span>Calorías</span><span><b>' + Math.round(tot.k) + "</b> / " + tg.k + "</span></div>" + bar(tot.k, tg.k) +
+    '<div class="row sp small" style="margin-top:8px"><span>Proteína</span><span><b>' + Math.round(tot.p) + "</b> / " + tg.p + " g</span></div>" + bar(tot.p, tg.p, "g") +
+    '<p class="small mu" style="margin-top:8px">Carbohidratos ≈ ' + tg.c + " g · Grasas ≈ " + tg.f + " g (orientativo). Lo más importante: llegar a la proteína y no pasarte de las calorías.</p></div>";
+
+  h += '<div class="sec">Lo que llevo hoy</div><div class="card">';
+  if (!arr.length) h += '<p class="mu small">Aún no has registrado nada. Toca el + de una opción de abajo o agrega una comida manual.</p>';
+  arr.forEach(function (x, i) {
+    h += '<div class="opt"><div class="t">' + esc(x.n) + "<small>" + Math.round(x.k) + " kcal · " + Math.round(x.p) + ' g proteína</small></div><button class="btn2 red" onclick="delFood(' + i + ')">✕</button></div>';
+  });
+  h += '<button class="btn2" style="width:100%;margin-top:10px" onclick="manualFood()">+ Comida manual</button></div>';
+
+  h += '<div class="sec">Agua</div><div class="card"><div class="row" style="flex-wrap:wrap;gap:6px">';
+  for (let i = 1; i <= 10; i++) h += '<button class="glass ' + (i <= water ? "f" : "") + '" onclick="setWater(' + (i === water ? i - 1 : i) + ')"></button>';
+  h += '</div><p class="small mu" style="margin-top:8px">' + water * 250 + " ml · meta 2.000-2.500 ml</p></div>";
+
+  h += '<div class="sec">Ideas de comidas (toca + para sumar)</div>';
+  Object.keys(MEALS).forEach(function (m) {
+    h += '<div class="card"><b>' + m + "</b>";
+    MEALS[m].forEach(function (o, i) {
+      h += '<div class="opt"><div class="t">' + o.n + "<small>≈ " + o.k + " kcal · " + o.p + ' g proteína</small></div><button class="add" onclick="addMeal(\'' + m + "'," + i + ')">+</button></div>';
+    });
+    h += "</div>";
+  });
+  h += '<div class="sec">Reglas simples</div><div class="card"><ul class="b"><li><b>Plato:</b> 1/2 verduras, 1/4 proteína, 1/4 carbohidrato + un poco de grasa buena.</li><li>Proteína en cada comida (palma de la mano de carne, pescado, huevos o legumbres).</li><li>Sin calorías líquidas: gaseosas y jugos azucarados fuera; café, té y agua sí.</li><li>Pesa la comida cruda al principio; a las 2 semanas ya calculas a ojo.</li><li>80/20: si un día te sales, sigue con la siguiente comida, no compenses.</li><li>Ajuste: si en 3 semanas no bajas nada, resta ≈ 100 kcal (carbohidratos). Si bajas más de 0,7 kg por semana, suma 100.</li></ul></div>';
+  el.innerHTML = h;
+}
+function addMeal(m, i) {
+  const o = MEALS[m][i]; const ds = todayS();
+  S.food[ds] = S.food[ds] || [];
+  S.food[ds].push({ n: m + ": " + o.n.split(",")[0], k: o.k, p: o.p });
+  save(); toast("Agregado"); renderFood();
+}
+function delFood(i) { S.food[todayS()].splice(i, 1); save(); renderFood(); }
+function setWater(n) { S.water[todayS()] = n; save(); renderFood(); }
+function manualFood() {
+  openModal("Comida manual",
+    '<div class="fld"><div class="lbl">Qué comiste</div><input class="inp" id="mf-n" placeholder="Ej: empanada"></div>' +
+    '<div class="grid2"><div class="fld"><div class="lbl">Calorías</div><input class="inp" id="mf-k" inputmode="numeric" placeholder="250"></div><div class="fld"><div class="lbl">Proteína (g)</div><input class="inp" id="mf-p" inputmode="numeric" placeholder="10"></div></div>' +
+    '<button class="btn" onclick="saveManual()">Guardar</button>');
+}
+function saveManual() {
+  const n = $("mf-n").value.trim() || "Comida"; const k = parseFloat($("mf-k").value) || 0; const p = parseFloat($("mf-p").value) || 0;
+  const ds = todayS(); S.food[ds] = S.food[ds] || []; S.food[ds].push({ n: n, k: k, p: p });
+  save(); closeModal(); renderFood();
+}
+
+// ═══════════════════════════════════════════
+//  PROGRESO
+// ═══════════════════════════════════════════
+function chart(pts) {
+  if (pts.length < 2) return '<p class="mu small" style="text-align:center;padding:16px">Registra al menos 2 pesajes para ver la gráfica.</p>';
+  const W = 320, H = 150, P = 26;
+  const ks = pts.map(function (p) { return p.kg; });
+  const lo = Math.min.apply(null, ks) - 0.5, hi = Math.max.apply(null, ks) + 0.5;
+  const t0 = pd(pts[0].d).getTime(), t1 = pd(pts[pts.length - 1].d).getTime();
+  const X = function (p) { return P + (t1 === t0 ? 0 : (pd(p.d).getTime() - t0) / (t1 - t0)) * (W - 2 * P); };
+  const Y = function (p) { return H - P - (p.kg - lo) / (hi - lo) * (H - 2 * P); };
+  const path = pts.map(function (p, i) { return (i ? "L" : "M") + X(p).toFixed(1) + " " + Y(p).toFixed(1); }).join(" ");
+  const dots = pts.map(function (p) { return '<circle cx="' + X(p).toFixed(1) + '" cy="' + Y(p).toFixed(1) + '" r="3.5" fill="#FF7A6B"/>'; }).join("");
+  return '<svg viewBox="0 0 ' + W + " " + H + '" style="width:100%;height:auto"><text x="4" y="' + (P) + '" fill="#8a9298" font-size="10">' + hi.toFixed(1) + '</text><text x="4" y="' + (H - P + 4) + '" fill="#8a9298" font-size="10">' + lo.toFixed(1) + '</text><path d="' + path + '" fill="none" stroke="#FF7A6B" stroke-width="2.5" stroke-linejoin="round"/>' + dots + "</svg>";
+}
+function renderProg() {
+  const el = $("p-prog"); const ws = S.weights.slice().sort(function (a, b) { return a.d < b.d ? -1 : 1; });
+  const first = ws[0], last = ws[ws.length - 1];
+  let planned = 0, done = 0; const t = todayS();
+  if (S.start) for (let d = S.start; d <= t && diff(d, S.start) < WEEKS * 7; d = addD(d, 1)) {
+    const id = sessionId(d); if (id && SESS[id].t !== "rest" && !SESS[id].opt) { planned++; if (isDone(d)) done++; }
+  }
+  const optDone = Object.keys(S.logs).filter(function (k) { return S.logs[k].done && S.logs[k].id === "RUNO"; }).length;
+  let wkRate = "";
+  if (ws.length >= 2) {
+    const days = diff(last.d, first.d); if (days >= 7) wkRate = ((last.kg - first.kg) / (days / 7)).toFixed(2);
+  }
+  let h = '<div class="grid2" style="margin-bottom:12px"><div class="card" style="margin:0;text-align:center"><div class="big">' + (last ? last.kg.toFixed(1) : "—") + '<span class="mu small"> kg</span></div><div class="small mu">Peso actual</div></div>' +
+    '<div class="card" style="margin:0;text-align:center"><div class="big" style="color:' + (first && last && last.kg <= first.kg ? "var(--mint)" : "var(--tx)") + '">' + (first && last ? (last.kg - first.kg > 0 ? "+" : "") + (last.kg - first.kg).toFixed(1) : "—") + '<span class="mu small"> kg</span></div><div class="small mu">Desde el inicio</div></div></div>';
+  h += '<div class="card"><div class="row sp"><b>Peso</b><span class="small mu">' + (wkRate ? wkRate + " kg/semana" : "meta: 0,25-0,5 kg/sem") + "</span></div>" + chart(ws) + "</div>";
+  h += '<div class="card"><div class="row sp"><b>Constancia</b><span class="small mu">' + done + " de " + planned + " sesiones</span></div>" + bar(done, planned, "g") + '<p class="small mu">' + (optDone ? "+ " + optDone + " carrera(s) opcional(es). " : "") + "Con 3 de 4 sesiones a la semana ya estás avanzando.</p></div>";
+  h += '<button class="btn" onclick="weightModal()">+ Registrar peso / cintura</button>';
+  h += '<div class="sec">Historial</div><div class="card">';
+  if (!ws.length) h += '<p class="mu small">Aún no hay registros. Pésate en ayunas, una vez por semana (mismo día y misma hora) y anota la cintura a la altura del ombligo.</p>';
+  ws.slice().reverse().forEach(function (w) {
+    h += '<div class="opt"><div class="t"><b>' + w.kg.toFixed(1) + ' kg</b><small>' + fdate(w.d) + (w.waist ? " · cintura " + w.waist + " cm" : "") + '</small></div><button class="btn2 red" onclick="delWeight(\'' + w.d + '\')">✕</button></div>';
+  });
+  h += "</div>";
+  el.innerHTML = h;
+}
+function weightModal() {
+  openModal("Registrar medidas",
+    '<div class="grid2"><div class="fld"><div class="lbl">Peso (kg)</div><input class="inp" id="w-kg" inputmode="decimal" placeholder="59.0"></div><div class="fld"><div class="lbl">Cintura (cm)</div><input class="inp" id="w-w" inputmode="decimal" placeholder="opcional"></div></div>' +
+    '<div class="fld"><div class="lbl">Fecha</div><input class="inp" id="w-d" type="date" value="' + todayS() + '"></div><button class="btn" onclick="saveWeight()">Guardar</button>');
+}
+function saveWeight() {
+  const kg = parseFloat($("w-kg").value.replace(",", ".")); const wa = parseFloat($("w-w").value.replace(",", ".")); const d = $("w-d").value || todayS();
+  if (!kg || kg < 30 || kg > 200) { toast("Escribe un peso válido"); return; }
+  S.weights = S.weights.filter(function (x) { return x.d !== d; });
+  S.weights.push({ d: d, kg: kg, waist: wa || null }); save(); closeModal(); renderProg();
+}
+function delWeight(d) { S.weights = S.weights.filter(function (x) { return x.d !== d; }); save(); renderProg(); }
+
+// ═══════════════════════════════════════════
+//  MÁS: guía + ajustes
+// ═══════════════════════════════════════════
+function renderMas() {
+  const el = $("p-mas");
+  let h = '<div class="sec">Guía</div><div class="card" style="padding:4px 14px">' +
+    "<details><summary>Cómo progresar con pocas mancuernas</summary><ul class=\"b\"><li>Trabaja cerca del esfuerzo: deja 2 repeticiones \"en el tanque\".</li><li>Cuando llegues al máximo del rango de repeticiones en todas las series, sube el peso o usa una banda más dura.</li><li>Si no puedes subir peso: baja en 3 segundos, haz una pausa de 1 segundo abajo o pasa a la versión de una pierna/un brazo.</li><li>Anota siempre el peso: la app te recuerda la última vez.</li></ul></details>" +
+    "<details><summary>Con bandas en lugar de peso</summary><p>Sentadilla: pisa la banda y sujétala en los hombros. Peso muerto: pisa la banda y tira hacia la cadera. Press de hombros y remos: banda anclada en una puerta o bajo los pies. Ajusta la tensión acercando o alejando el cuerpo del anclaje.</p></details>" +
+    "<details><summary>Las carreras cortas</summary><ul class=\"b\"><li>Ritmo cómodo: puedes hablar frases cortas mientras trotas.</li><li>Mejor terreno blando o plano y zapatillas con buena amortiguación.</li><li>Si un día estás muy cansada, cámbiala por una caminata rápida; no pasa nada.</li><li>La carrera opcional del domingo es extra: úsala solo si te sientes bien.</li></ul></details>" +
+    "<details><summary>Descarga y descanso</summary><p>Las semanas 4, 8 y 12 bajan a 2 series. No es \"perder\" progreso: es cuando el cuerpo asimila. Dormir 7-8 h y caminar a diario acelera los resultados más que entrenar más.</p></details>" +
+    "<details><summary>Cuándo pararte y consultar</summary><p>Mareos, dolor punzante en articulaciones, dolor en el pecho o cansancio que no se va en varios días: para y consulta con un médico. Este plan es orientativo, no reemplaza la valoración de un profesional de la salud o un nutricionista.</p></details></div>";
+  h += '<div class="sec">Ajustes</div><div class="card"><div class="fld"><div class="lbl">Tu nombre</div><input class="inp" id="s-name" value="' + esc(S.name) + '" onchange="S.name=this.value.trim();save();updHeader()"></div>' +
+    '<div class="fld"><div class="lbl">Fecha de inicio del programa (se ajusta al lunes)</div><input class="inp" id="s-start" type="date" value="' + S.start + '" onchange="setStart(this.value)"></div>' +
+    '<div class="grid2"><button class="btn2 mint" onclick="exportData()">Guardar copia</button><button class="btn2" onclick="$(\'imp\').click()">Restaurar copia</button></div><input type="file" id="imp" accept="application/json" style="display:none" onchange="importData(this)">' +
+    '<p class="small mu" style="margin-top:10px">Tus datos viven solo en este teléfono. Guarda una copia de vez en cuando y, sobre todo, antes de borrar los datos del navegador.</p>' +
+    '<button class="btn2 red" style="width:100%;margin-top:10px" onclick="resetAll()">Borrar todo y empezar de cero</button></div>';
+  el.innerHTML = h;
+}
+function setStart(v) { if (!v) return; S.start = snapStart(v); save(); toast("Empieza el " + fdate(S.start)); viewDate = todayS(); renderMas(); updHeader(); }
+function exportData() {
+  const blob = new Blob([JSON.stringify(S, null, 2)], { type: "application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "mi-plan-copia-" + todayS() + ".json";
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function importData(inp) {
+  const f = inp.files[0]; if (!f) return; const r = new FileReader();
+  r.onload = function () {
+    try { const d = JSON.parse(r.result); if (!d || typeof d !== "object" || !d.logs) throw 0; S = Object.assign({}, DEF, d); save(); toast("Copia restaurada"); render(); }
+    catch (e) { toast("Archivo no válido"); }
+  };
+  r.readAsText(f);
+}
+function resetAll() {
+  if (!confirm("¿Borrar todos tus registros y empezar de cero?")) return;
+  localStorage.removeItem(LS); S = Object.assign({}, DEF); viewDate = todayS(); onboarding();
+}
+
+// ═══════════════════════════════════════════
+//  BIENVENIDA
+// ═══════════════════════════════════════════
+function onboarding() {
+  openModal("¡Bienvenida!",
+    '<p class="mu" style="margin-bottom:14px">Este es tu plan de 12 semanas: pesas en casa, carreras muy cortas y una guía de comida para bajar grasa de forma controlada. Solo necesitas mancuernas, bandas y ganas.</p>' +
+    '<div class="fld"><div class="lbl">¿Cómo te llamas?</div><input class="inp" id="o-name" placeholder="Tu nombre"></div>' +
+    '<div class="fld"><div class="lbl">¿Cuándo empiezas? (se ajusta al lunes)</div><input class="inp" id="o-start" type="date" value="' + nextMonday() + '"></div>' +
+    '<div class="fld"><div class="lbl">Peso de hoy en kg (opcional)</div><input class="inp" id="o-kg" inputmode="decimal" placeholder="59.0"></div>' +
+    '<button class="btn" onclick="saveOnb()">Empezar</button>', true);
+}
+function saveOnb() {
+  const n = $("o-name").value.trim(); const st = $("o-start").value || nextMonday();
+  const kg = parseFloat($("o-kg").value.replace(",", "."));
+  if (!n) { toast("Escribe tu nombre"); return; }
+  S.name = n; S.start = snapStart(st);
+  if (kg > 30 && kg < 200) S.weights = [{ d: todayS(), kg: kg, waist: null }];
+  save(); closeModal(); viewDate = todayS(); show("hoy");
+  toast("¡Hola " + n + "! Tu plan empieza el " + fdate(S.start));
+}
+
+// ═══════════════════════════════════════════
+//  ARRANQUE
+// ═══════════════════════════════════════════
+if ("serviceWorker" in navigator) { window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); }); }
+if (!S.start) { updHeader(); onboarding(); } else { render(); }
+</script>
+</body>
+</html>
